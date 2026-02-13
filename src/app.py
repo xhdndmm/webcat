@@ -124,4 +124,4 @@ def handle_message(data):
     emit('receive_msg', chat_data, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, port=5000)
+    socketio.run(app, debug=False, port=5000)
