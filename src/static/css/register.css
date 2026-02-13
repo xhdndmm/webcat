@@ -1,1 +1,50 @@
 /*[https://github.com/xhdndmm/webcat]*/
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: #e9ecef; 
+    height: 100vh; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.register-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+h2 { color: #2c3e50; margin-bottom: 10px; text-align: center; }
+.subtitle { color: #7f8c8d; font-size: 14px; text-align: center; margin-bottom: 30px; }
+
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; margin-bottom: 8px; color: #34495e; font-size: 14px; }
+.input-group input { 
+    width: 100%; 
+    padding: 12px; 
+    border: 1px solid #ddd; 
+    border-radius: 6px; 
+    outline: none; 
+    transition: border 0.3s;
+}
+.input-group input:focus { border-color: #3498db; }
+
+button { 
+    width: 100%; 
+    padding: 12px; 
+    background: #3498db; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    transition: background 0.3s;
+}
+button:hover { background: #2980b9; }
+
+.footer-links { margin-top: 20px; text-align: center; }
+.footer-links a { color: #3498db; text-decoration: none; font-size: 14px; }

@@ -1,75 +1,68 @@
 #[https://github.com/xhdndmm/webcat]
 
 from flask import Flask, render_template, request, jsonify, session
-import json
+from flask_socketio import SocketIO, emit
 import base64
 import sqlite3
 import logging
+import time
+import os
+import json
 
 #==========配置区==========
 DB_PATH = "webcat.db"
 DATA_PATH = "webcat.json"
 LOG_PATH = "webcat.log"
-LOG_LEVEL = "logging.INFO"
+SECRET_KEY = "123"
 #====================
 
 app = Flask(__name__)
+app.secret_key = SECRET_KEY
+socketio = SocketIO(app, cors_allowed_origins="*")
 
+logging.basicConfig(filename=LOG_PATH, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename=LOG_PATH, level=LOG_LEVEL)
 
-#初始化数据库
+# 初始化数据库
 def init_db():
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        logger.info("数据库打开成功")
-    except Exception as e:
-        logger.error("数据库无法打开",e)
-    try:
+    with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS USERINFO
                             (ID INTEGER PRIMARY KEY AUTOINCREMENT,
                             NAME TEXT UNIQUE NOT NULL,
                             PWD TEXT NOT NULL)''')
-        logger.info("数据库创建成功")
-    except Exception as e:
-        logger.error("数据库创建失败",e)
-    conn.commit()
-    conn.close()
+        conn.commit()
 
-#Flask路由
-#主页
+if not os.path.exists(DB_PATH):
+    init_db()
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# 注册
-@app.route('/register', methods=['GET,POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form['username']
-        pwd = request.form['password']
+        # 兼容 Form 提交和 JSON 提交
+        data = request.get_json() if request.is_json else request.form
+        name = data.get('username')
+        pwd = data.get('password')
 
-        #base64加密密码
-        original_str = str(pwd)
-        bytes_data = original_str.encode('utf-8')
-        encoded_bytes = base64.b64encode(bytes_data)
-        encoded_str = encoded_bytes.decode('utf-8')
+        # Base64 编码
+        encoded_str = base64.b64encode(str(pwd).encode('utf-8')).decode('utf-8')
 
         try:
             with sqlite3.connect(DB_PATH) as conn:
                 c = conn.cursor()
                 c.execute("INSERT INTO USERINFO (NAME, PWD) VALUES (?,?)", (name, encoded_str))
                 conn.commit()
-            return "注册成功！<a href='/'>去登录</a>"
+            return jsonify({"status": "success", "message": "注册成功"})
         except sqlite3.IntegrityError:
-            return "用户名已存在！"
+            return jsonify({"status": "error", "message": "用户名已存在"}), 400
     return render_template('register.html')
 
-#登陆
 @app.route('/login', methods=['POST'])
 def login():
-    # 获取 JS 发送的 JSON 数据
     data = request.get_json()
     if not data:
         return jsonify({"status": "error", "message": "未接收到数据"}), 400
@@ -77,31 +70,58 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
+    # 将输入的密码进行同样的编码用于比对
+    encoded_input = base64.b64encode(str(password).encode('utf-8')).decode('utf-8')
+
     with sqlite3.connect(DB_PATH) as conn:
         c = conn.cursor()
-        c.execute("SELECT * FROM USERINFO WHERE NAME = ?", (username,))
+        c.execute("SELECT ID, NAME, PWD FROM USERINFO WHERE NAME = ?", (username,))
         user = c.fetchone()
 
-        decoded_bytes = base64.b64decode(password)
-        decoded_str = decoded_bytes.decode('utf-8')
-
-        if user and decoded_str(user[2], password):
+        # 修正比对逻辑
+        if user and user[2] == encoded_input:
             session['user_id'] = user[0]
             session['user_name'] = user[1]
-            return jsonify({
-                "status": "success", 
-                "message": "登录成功",
-                "user_name": user[1]
-            })
+            return jsonify({"status": "success", "user_name": user[1]})
         else:
-            return jsonify({
-                "status": "error", 
-                "message": "用户名或密码错误"
-            }), 401
+            return jsonify({"status": "error", "message": "用户名或密码错误"}), 401
 
-#登陆状态监测
 @app.route('/check_auth')
 def check_auth():
     if 'user_name' in session:
         return jsonify({"is_logged_in": True, "user_name": session['user_name']})
     return jsonify({"is_logged_in": False})
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return jsonify({"status": "success", "message": "已退出登录"})
+
+# 确保用户在没有登录的状态下不会连接socket
+@socketio.on('connect')
+def handle_connect():
+    if 'user_name' not in session:
+        return False
+
+# 消息收发
+@socketio.on('send_msg')
+def handle_message(data):
+    user = session.get('user_name', '游客')
+    msg_content = data.get('msg', '')
+    
+    # 构造消息对象
+    chat_data = {
+        'user': user,
+        'msg': msg_content,
+        'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    }
+    
+    # 写入文件记录
+    with open(DATA_PATH, "a", encoding='utf-8') as f:
+        f.write(json.dumps(chat_data, ensure_ascii=False) + "\n")
+    
+    # 广播给所有人
+    emit('receive_msg', chat_data, broadcast=True)
+
+if __name__ == '__main__':
+    socketio.run(app, debug=True, port=5000)

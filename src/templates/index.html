@@ -1,11 +1,44 @@
 <!--[https://github.com/xhdndmm/webcat]-->
 <!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
-    <title>webcat</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
-    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebCat 聊天室</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    
 </head>
 <body>
-    <h1>webcat</h1>
+    <div id="app">
+        <header>
+            <span id="brand">WebCat</span>
+            <span id="user_status">正在检查登录...</span>
+            <button id="logout_btn">退出</button>
+        </header>
+
+        <main id="chat_window">
+            <div id="msg_list"></div>
+        </main>
+
+        <footer id="input_area">
+            <input type="text" id="msg_input" placeholder="输入消息..." disabled>
+            <button id="send_btn" disabled>发送</button>
+        </footer>
+    </div>
+
+    <div id="login_modal" class="modal">
+        <div class="modal_content">
+            <h3>用户登录</h3>
+            <input type="text" id="login_user" placeholder="用户名">
+            <input type="password" id="login_pwd" placeholder="密码">
+            <div class="modal_btns">
+                <button onclick="handleLogin()">登录</button>
+                <a href="/register" class="reg_link">没有账号？去注册</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="/static/js/index.js"></script>
 </body>
+</html>
