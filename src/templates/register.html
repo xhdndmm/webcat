@@ -1,0 +1,42 @@
+<!--[https://github.com/xhdndmm/webcat]-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册 - WebCat</title>
+    <link rel="stylesheet" href="/static/css/register.css">
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <h2>创建新账号</h2>
+            <p class="subtitle">加入 WebCat，开始实时聊天</p>
+            
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" required minlength="3" placeholder="至少3个字符">
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required minlength="6" placeholder="至少6个字符">
+                </div>
+
+                <div class="input-group">
+                    <label for="re_password">确认密码</label>
+                    <input type="password" id="re_password" name="re_password" required placeholder="再次输入密码">
+                </div>
+
+                <button type="submit" id="regBtn">立即注册</button>
+            </form>
+            
+            <div class="footer-links">
+                <a href="/">返回登录</a>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/register.js"></script>
+</body>
+</html>
