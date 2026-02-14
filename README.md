@@ -39,6 +39,7 @@
 ## 使用说明
 ### 1.先决条件
 首先你需要准备好[python3](https://www.python.org/downloads/)环境，然后下载[源代码](https://github.com/xhdndmm/webcat/releases)并解压。
+- 建议使用linux系统运行。
 ### 2.准备运行环境
 #### 2.1创建python虚拟环境
 ```shell
@@ -52,9 +53,22 @@ python -m venv .venv
 ### 3.运行程序
 ```shell
 cd src/
-.venv/bin/gunicorn --worker-class eventlet -b 0.0.0.0:5000 main:app
+.venv/bin/python app.py
 ```
-- 注：你可以自行配置systemd服务等实现后台运行
+运行后会生成默认配置。
+```json
+{
+  "log_path": "wc_log.log",
+  "db_path": "wc_db.db",
+  "secret_key": "123"
+}
+```
+其中
+- `log_path`是日志路径
+- `db_path`是数据库路径
+- `secret_key`是socket安全密钥
+
+请按需修改配置文件，修改后即可正常运行。
 
 ## 技术说明
 目前采用python+flask的后端，使用sqlite数据库存储用户信息，并将聊天记录存储在一个json文件中。前后端使用websocket保持连接来确保信息按时收发。

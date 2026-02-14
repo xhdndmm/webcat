@@ -206,6 +206,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-webcat.json
-webcat.db
-webcat.log
+wc_cfg.json
+wc_db.db
+wc_log.log
